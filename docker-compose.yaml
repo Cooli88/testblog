@@ -1,0 +1,56 @@
+version: '3'
+services:
+
+  blog-php:
+    build: .
+    container_name: blog-php
+    restart: always
+    expose:
+    - "9000"
+    volumes:
+    - .:/code
+    working_dir: /code
+    networks:
+    - mblog
+
+  blog-nginx:
+    # Пропишем какой образ мы хотим использовать
+    image: nginx:latest
+    # Назовем свой контейнер по красивому
+    container_name: blog-nginx
+    # Проброс портов
+    ports:
+    - 80:80
+    - 443:443
+    # Проброс папок
+    volumes:
+    - ./Nginx/core:/etc/nginx/conf.d
+    - ./Nginx/www:/var/www/
+    - .:/code
+    - ./Nginx/Logs:/var/log/nginx/
+    - ./Nginx/html:/usr/share/nginx/html/
+    # Укажем зависимости
+    links:
+    - blog-php
+    networks:
+    - mblog
+
+  blog-mysql:
+    image: mysql
+    restart: always
+    hostname: blog-mysql
+    container_name: blog-mysql
+    ports:
+    - 3310:3306/tcp
+    networks:
+    - mblog
+    volumes:
+    - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+
+networks:
+  mblog:
